@@ -1,0 +1,42 @@
+# Xcode
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
+xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved.lock
+
+# Local tooling and credentials
+.env
+*.p8
+*.p12
+*.mobileprovision
+*.provisionprofile
+*.cer
+asc_private/
+
+# Python helper-script bytecode
+__pycache__/
+*.pyc
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Local databases, exports, and working photo caches
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+exports/
+PhotoWork/
+
+# Committed regression fixture DB (tracked deliberately; runtime DBs stay out)
+!Packages/ResaleDeskStore/Tests/ResaleDeskStoreTests/Fixtures/v1.sqlite

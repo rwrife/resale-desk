@@ -1,0 +1,29 @@
+Resale Desk — Offline resale-preparation workspace
+
+Tidying up? Keep every sale organized before you post, pack, and ship. Resale Desk is a private, on-device workspace for documenting what you are selling, drafting honest listings, and keeping clean records of every parcel — without tying your notes, photos, and prices to any marketplace account.
+
+CONDITION YOU CAN STAND BEHIND
+- Build your own condition rubrics or start from built-in templates for apparel, electronics, books, and more.
+- Answer each check pass, fail, or unknown and attach defect photos to the item.
+- Resale Desk only suggests a grade when every required check is answered — gaps stay honestly unknown instead of being guessed.
+
+STAGE LISTINGS YOUR WAY
+- Draft titles and descriptions in your own words with personal phrasing templates.
+- Track asking and minimum prices with full price history, then copy the finished text to paste anywhere.
+
+PACK AND SHIP WITH A CHECKLIST
+- Group items into a parcel and work through a packing checklist so nothing is skipped.
+- Record carrier and tracking numbers yourself; Resale Desk stores them without contacting any carrier.
+
+HONEST RECORDS, TRULY YOURS
+- An append-only ledger of listings, price changes, shipments, and outcomes builds your season totals from recorded amounts only.
+- Export items, drafts, parcels, and outcomes to CSV, or take a versioned JSON backup and restore it with a full preview first.
+
+PRIVATE BY DESIGN
+- No account. No cloud. No ads. No trackers. Resale Desk works entirely offline and never uploads your photos or prices.
+- Camera and photo access happen only when you choose to capture or import, and exports are always user-initiated.
+- Designed with VoiceOver support, Dynamic Type, and large one-thumb controls for quick capture at the pile of stuff.
+
+Resale Desk prepares the sale; you post it wherever you like. Resale Desk never connects to marketplaces, buys shipping labels, handles payments, or appraises items.
+
+Note: this description reflects the planned app; features arrive through the app's milestones and this copy is reviewed against the shipping build before every release.
