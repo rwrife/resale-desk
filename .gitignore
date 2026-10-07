@@ -31,12 +31,8 @@ __pycache__/
 .idea/
 .vscode/
 
-# Local databases, exports, and working photo caches
+# Local databases and exports
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
 exports/
-PhotoWork/
-
-# Committed regression fixture DB (tracked deliberately; runtime DBs stay out)
-!Packages/ResaleDeskStore/Tests/ResaleDeskStoreTests/Fixtures/v1.sqlite

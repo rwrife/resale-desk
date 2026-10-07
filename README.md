@@ -74,7 +74,7 @@ The core workspace wants two surfaces: item photos + condition evidence on one s
 
 ## Current status
 
-Scaffold only: documentation, backlog, toolchain contract, and App Store listing copy (`AppStore/description.txt`). No Xcode project, app code, tests, icon artwork (`AppStore/icon.png` is required by issue #7 and is not generated yet), release workflow (`.github/workflows/release.yml` is required by issue #7 and does not exist yet), archive, or TestFlight build exists.
+M1 bootstrap: `ResaleDesk.xcodeproj`, a SwiftUI launch screen, `ResaleDeskKit` and `ResaleDeskStore` package skeletons, and Linux/pinned-Apple CI. No inventory, rubric engine, persistence, or export behavior is implemented yet. CI builds the app and measures its bundle identifier and `UIDeviceFamily`; package unit tests run on Linux and the pinned Apple toolchain. This is not a simulator launch or distribution claim. Icon artwork, release workflow, signed archive, and TestFlight build remain issue #7 work. See [bootstrap evidence](docs/bootstrap-evidence.md).
 
 ## Milestones
 
@@ -88,7 +88,7 @@ Scaffold only: documentation, backlog, toolchain contract, and App Store listing
 
 ## Development quickstart
 
-No code yet. When issue #1 lands: open the Xcode project with the pinned toolchain (see `toolchain.json`), build for the iOS 26 simulator, run `swift test` for the pure-Swift `ResaleDeskKit` package plus the GRDB store package. All CI runs on Linux lanes plus the pinned Apple lane described in `PLAN.md`.
+Open `ResaleDesk.xcodeproj` in Xcode 26.0.1 (17A400) and build the `ResaleDesk` scheme for iOS Simulator. Run `swift test --package-path Packages/ResaleDeskKit` and `swift test --package-path Packages/ResaleDeskStore`; run `bash scripts/check_zero_network.sh`, `bash scripts/check_native_only.sh`, and `swift scripts/check_contract.swift` for static gates. CI runs both packages on Linux and on a pinned macOS runner, where it also builds the iPhone app and inspects the built plist. The store is a skeleton here; GRDB arrives in issue #2.
 
 ## License
 
