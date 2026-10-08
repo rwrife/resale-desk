@@ -8,8 +8,8 @@ struct ResaleDeskStoreTests {
         #expect(ResaleDeskStore.domain == "ResaleDeskStore")
     }
 
-    @Test("milestone marker is M1-skeleton")
+    @Test("milestone marker is M2-store")
     func milestoneMarker() {
-        #expect(ResaleDeskStore.milestone == "M1-skeleton")
+        #expect(ResaleDeskStore.milestone == "M2-store")
     }
 }

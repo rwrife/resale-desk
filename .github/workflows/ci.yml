@@ -24,6 +24,12 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Swift version
         run: swift --version
+      - name: Install libsqlite3-dev for GRDB CSQLite on Linux
+        run: |
+          set -e
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -qq
+          apt-get install -y -qq libsqlite3-dev
       - name: Run ResaleDeskKit package tests
         run: swift test --package-path Packages/ResaleDeskKit
       - name: Run ResaleDeskStore package tests
