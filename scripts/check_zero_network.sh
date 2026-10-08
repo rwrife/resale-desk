@@ -43,8 +43,8 @@ matches=""
 for root in "${ROOTS[@]}"; do
   [ -d "$root" ] || continue
   for pat in "${PATTERNS[@]}"; do
-    hits=$(grep -RnE --exclude-dir=.build --include='*.swift' --include='*.h' --include='*.m' --include='*.c' \
-      "$pat" "$root" 2>/dev/null || true)
+    hits=$(grep -RE --exclude-dir=.build --include='*.swift' --include='*.h' --include='*.m' --include='*.c' \
+      "$pat" "$root" 2>/dev/null | grep -vFx 'Packages/ResaleDeskStore/Package.swift:        .package(url: "https://github.com/groue/GRDB.swift.git", exact: "7.11.1"),' || true)
     [ -n "$hits" ] && matches+="${hits}"$'\n'
   done
 done
@@ -67,10 +67,10 @@ if [ -n "$matches" ]; then
   fi
 fi
 
-# M1 has no external packages. Future GRDB adoption must add an audited exact
-# dependency pin here; do not silently approve arbitrary executable dependencies.
-if grep -RnE --exclude-dir=.build --include='Package.swift' '^[[:space:]]*url[[:space:]]*:|\.package[[:space:]]*\([[:space:]]*url[[:space:]]*:' Packages; then
-  echo "ZERO-NETWORK GATE FAILED: unaudited remote Swift dependency"
+# Audited GRDB 7.11.1 is a build-time fetch only; reject any other remote pin.
+remote=$(grep -RE --exclude-dir=.build --include='Package.swift' '\.package[[:space:]]*\([[:space:]]*url[[:space:]]*:' Packages || true)
+if [ -n "$remote" ] && [ "$remote" != 'Packages/ResaleDeskStore/Package.swift:        .package(url: "https://github.com/groue/GRDB.swift.git", exact: "7.11.1"),' ]; then
+  echo "ZERO-NETWORK GATE FAILED: unaudited remote Swift dependency: $remote"
   exit 1
 fi
 if grep -RnE 'XCRemoteSwiftPackageReference|repositoryURL[[:space:]]*=' ResaleDesk.xcodeproj; then
@@ -81,5 +81,5 @@ if grep -RnE --include='*.entitlements' --include='*.plist' 'com\.apple\.(securi
   echo "ZERO-NETWORK GATE FAILED: network capability or entitlement"
   exit 1
 fi
-# ponytail: broad contentsOf ban in M1; add a file-URL-only audited reader in M2/M6.
+# ponytail: broad contentsOf ban remains; add a file-URL-only audited reader when M6 backup ships.
 echo "Zero-network gate: PASS (empty allowlist, sources, dependencies, entitlements)"

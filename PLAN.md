@@ -18,7 +18,7 @@ No Flutter, React Native, Expo, Kotlin Multiplatform, .NET MAUI, Unity or other 
 ## Milestones and dependencies
 
 1. **Skeleton + CI** — create Xcode project, Swift packages, minimal app route, iPhone-only settings, zero-network static checks; Apple CI asserts exact Xcode/SDK and built UIDeviceFamily. No code exists at scaffold time.
-2. **Domain + persistence** — condition rubric engine, unknown-safe grade, listing/price/parcel/outcome events, SQLite migrations, fixture tests. Depends on 1.
+2. **Domain + persistence** — condition rubric engine, unknown-safe grade, listing/price/parcel/outcome events, SQLite migrations, fixture tests. Implemented in M2; verification and API details: [domain-store.md](docs/domain-store.md). Depends on 1.
 3. **Condition workflow** — items, photos, editable rubric, required-answer preview, VoiceOver and Dynamic Type. Depends on 2.
 4. **Listing staging** — title/description and asking/minimum price editing; copy and file exports of draft; no marketplace publishing. Depends on 3.
 5. **Parcel + outcomes** — packing checklist, typed carrier/tracking, event-derived sales totals, `ListingWorkspaceLayout` seam and single-screen iPhone QA. Depends on 4.

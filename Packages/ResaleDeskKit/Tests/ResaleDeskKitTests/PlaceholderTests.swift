@@ -8,8 +8,8 @@ struct PlaceholderTests {
         #expect(ResaleDeskKit.domain == "ResaleDeskKit")
     }
 
-    @Test("milestone marker is set for M1")
+    @Test("milestone marker is M2 domain")
     func milestoneMarker() {
-        #expect(ResaleDeskKit.milestone == "M1-skeleton")
+        #expect(ResaleDeskKit.milestone == "M2-domain")
     }
 }

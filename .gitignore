@@ -33,6 +33,7 @@ __pycache__/
 
 # Local databases and exports
 *.sqlite
+!Packages/ResaleDeskStore/Tests/ResaleDeskStoreTests/Fixtures/*.sqlite
 *.sqlite-shm
 *.sqlite-wal
 exports/
