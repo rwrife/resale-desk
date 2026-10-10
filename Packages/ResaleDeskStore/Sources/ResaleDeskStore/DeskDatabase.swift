@@ -61,6 +61,18 @@ public final class DeskDatabase {
             try db.execute(sql: "INSERT INTO item VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET payload = excluded.payload", arguments: [item.id, try Self.encode(item)])
         }
     }
+    public func updateMetadata(itemID: String, title: String, category: String?) throws {
+        try queue.write { db in
+            guard let row = try Row.fetchOne(db, sql: "SELECT * FROM item WHERE id = ?", arguments: [itemID]) else {
+                throw StoreError.corruptPayload
+            }
+            var current = try Self.decode(Item.self, row)
+            current.title = title
+            current.category = category
+            try current.validate()
+            try db.execute(sql: "UPDATE item SET payload = ? WHERE id = ?", arguments: [try Self.encode(current), itemID])
+        }
+    }
     public func save(_ rubric: RubricTemplate) throws {
         try rubric.validate()
         try queue.write { db in
@@ -79,6 +91,18 @@ public final class DeskDatabase {
             try Self.check(rubric.id, row)
             _ = try rubric.grade(answers)
             try db.execute(sql: "INSERT INTO condition VALUES (?, ?, ?) ON CONFLICT(itemID) DO UPDATE SET rubricID = excluded.rubricID, payload = excluded.payload", arguments: [itemID, rubricID, try Self.encode(answers)])
+        }
+    }
+    public func condition(itemID: String) throws -> ItemCondition? {
+        try queue.read { db in
+            guard let row = try Row.fetchOne(db, sql: "SELECT * FROM condition WHERE itemID = ?", arguments: [itemID]) else { return nil }
+            let rubricID: String = row["rubricID"]
+            guard let templateRow = try Row.fetchOne(db, sql: "SELECT * FROM rubric WHERE id = ?", arguments: [rubricID]) else { throw StoreError.missingRubric }
+            let template = try Self.decode(RubricTemplate.self, templateRow)
+            try Self.check(template.id, templateRow)
+            let answers = try Self.decode([ConditionAnswer].self, row)
+            _ = try template.grade(answers)
+            return ItemCondition(rubricID: rubricID, answers: answers)
         }
     }
     public func grade(itemID: String) throws -> ConditionGrade {
