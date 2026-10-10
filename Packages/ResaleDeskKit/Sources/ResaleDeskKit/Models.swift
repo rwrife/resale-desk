@@ -10,24 +10,61 @@ public struct Item: Codable, Equatable, Sendable {
     public let id: String
     public var title: String
     public var photoPaths: [String]
-    public init(id: String, title: String, photoPaths: [String] = []) { self.id = id; self.title = title; self.photoPaths = photoPaths }
+    public var category: String?
+    public init(id: String, title: String, photoPaths: [String] = [], category: String? = nil) {
+        self.id = id; self.title = title; self.photoPaths = photoPaths; self.category = category
+    }
+    // Backward-compatible with M2 JSON fixtures and local databases lacking category.
+    private enum CodingKeys: String, CodingKey { case id, title, photoPaths, category }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        title = try values.decode(String.self, forKey: .title)
+        photoPaths = try values.decode([String].self, forKey: .photoPaths)
+        category = try values.decodeIfPresent(String.self, forKey: .category)
+    }
     public func validate() throws {
         try identity(id, title)
         guard Set(photoPaths).count == photoPaths.count, photoPaths.allSatisfy({ !$0.isEmpty && !$0.hasPrefix("/") && !$0.split(separator: "/").contains("..") }) else { throw DomainError.invalidIdentity }
     }
 }
 
-public enum CheckValue: String, Codable, Sendable { case pass, fail, unknown }
+public enum CheckValue: String, Codable, Sendable, CaseIterable { case pass, fail, unknown }
 public enum ConditionGrade: String, Codable, Sendable { case excellent, good, fair, unknown }
 public struct RubricQuestion: Codable, Equatable, Sendable {
     public let id: String
+    public let title: String?
     public let required: Bool
-    public init(id: String, required: Bool) { self.id = id; self.required = required }
+    public init(id: String, title: String? = nil, required: Bool) { self.id = id; self.title = title; self.required = required }
+    private enum CodingKeys: String, CodingKey { case id, title, required }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        title = try values.decodeIfPresent(String.self, forKey: .title)
+        required = try values.decode(Bool.self, forKey: .required)
+    }
+    /// Display label for capture UIs; falls back to a humanized id.
+    public var displayTitle: String { title ?? id.replacingOccurrences(of: "-", with: " ") }
 }
 public struct ConditionAnswer: Codable, Equatable, Sendable {
     public let questionID: String
     public let value: CheckValue
-    public init(questionID: String, value: CheckValue) { self.questionID = questionID; self.value = value }
+    /// Optional free-text note (e.g. defect description). Never affects grade derivation.
+    public var note: String?
+    public init(questionID: String, value: CheckValue, note: String? = nil) { self.questionID = questionID; self.value = value; self.note = note }
+    private enum CodingKeys: String, CodingKey { case questionID, value, note }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        questionID = try values.decode(String.self, forKey: .questionID)
+        value = try values.decode(CheckValue.self, forKey: .value)
+        note = try values.decodeIfPresent(String.self, forKey: .note)
+    }
+}
+public struct ItemCondition: Codable, Equatable, Sendable {
+    public let rubricID: String
+    public let answers: [ConditionAnswer]
+    public init(rubricID: String, answers: [ConditionAnswer]) { self.rubricID = rubricID; self.answers = answers }
+    public func validate() throws { try identity(rubricID) }
 }
 public struct RubricTemplate: Codable, Equatable, Sendable {
     public let id: String

@@ -7,11 +7,11 @@ import ResaleDeskKit
 @Suite struct PersistenceTests {
     @Test func roundTripAllEntitiesAndUnknownTotals() throws {
         let store = try DeskDatabase()
-        let item = Item(id: "i", title: "Book", photoPaths: ["photos/book.jpg"])
+        let item = Item(id: "i", title: "Book", photoPaths: ["photos/book.jpg"], category: "Books")
         try store.save(item)
-        let rubric = RubricTemplate(id: "r", questions: [RubricQuestion(id: "pages", required: true)])
+        let rubric = RubricTemplate(id: "r", questions: [RubricQuestion(id: "pages", title: "Pages intact", required: true)])
         try store.save(rubric)
-        try store.saveAnswers(itemID: "i", rubricID: "r", answers: [ConditionAnswer(questionID: "pages", value: .unknown)])
+        try store.saveAnswers(itemID: "i", rubricID: "r", answers: [ConditionAnswer(questionID: "pages", value: .unknown, note: "Pencil on page 4")])
         try store.save(ListingDraft(id: "d", itemID: "i", title: "Book", description: "Worn spine"))
         try store.save(Parcel(id: "p", itemIDs: ["i"], carrier: "Manual", tracking: "Private"))
         try store.append(PackingEvent(id: "pack", parcelID: "p", checklistKey: "wrap", completed: true, recordedAt: 1))
@@ -20,6 +20,7 @@ import ResaleDeskKit
         #expect(try store.items() == [item])
         #expect(try store.rubrics() == [rubric])
         #expect(try store.grade(itemID: "i") == .unknown)
+        #expect(try store.condition(itemID: "i")?.answers.first?.note == "Pencil on page 4")
         #expect(try store.drafts().first?.description == "Worn spine")
         #expect(try store.parcels().first?.tracking == "Private")
         #expect(try store.packingEvents().first?.completed == true)
@@ -53,17 +54,35 @@ import ResaleDeskKit
         #expect(throws: StoreError.self) { try store.save(Parcel(id: "parcel", itemIDs: ["i", "other"])) }
     }
 
+    @Test func metadataEditPreservesLatestPhotoReferences() throws {
+        let store = try DeskDatabase()
+        try store.save(Item(id: "i", title: "Book", photoPaths: ["photos/new.jpg"]))
+        try store.updateMetadata(itemID: "i", title: "Edited book", category: "Books and media")
+        let current = try store.items().first
+        #expect(current?.title == "Edited book")
+        #expect(current?.category == "Books and media")
+        #expect(current?.photoPaths == ["photos/new.jpg"])
+        #expect(throws: (any Error).self) {
+            try store.updateMetadata(itemID: "missing", title: "Missing", category: nil)
+        }
+    }
+
     @Test func conditionReferencesAndUpdatesRemainValid() throws {
         let store = try DeskDatabase()
         try store.save(Item(id: "i", title: "Book"))
         #expect(try store.grade(itemID: "i") == .unknown)
+        #expect(try store.condition(itemID: "i") == nil)
         let r = RubricTemplate(id: "r", questions: [RubricQuestion(id: "pages", required: true)])
         try store.save(r)
         #expect(throws: (any Error).self) { try store.saveAnswers(itemID: "missing", rubricID: "r", answers: []) }
         #expect(throws: StoreError.self) { try store.saveAnswers(itemID: "i", rubricID: "missing", answers: []) }
         #expect(throws: DomainError.self) { try store.saveAnswers(itemID: "i", rubricID: "r", answers: [ConditionAnswer(questionID: "other", value: .pass)]) }
-        try store.saveAnswers(itemID: "i", rubricID: "r", answers: [ConditionAnswer(questionID: "pages", value: .pass)])
+        try store.saveAnswers(itemID: "i", rubricID: "r", answers: [ConditionAnswer(questionID: "pages", value: .pass, note: "Clean copy")])
         #expect(try store.grade(itemID: "i") == .excellent)
+        let savedCondition = try store.condition(itemID: "i")
+        #expect(savedCondition?.rubricID == "r")
+        #expect(savedCondition?.answers.first?.note == "Clean copy")
+        #expect(savedCondition?.answers.first?.value == .pass)
         #expect(throws: StoreError.self) { try store.save(RubricTemplate(id: "r", questions: [RubricQuestion(id: "new", required: true)])) }
         try store.queue.write { try $0.execute(sql: "UPDATE condition SET payload = '[]' WHERE itemID = 'i'") }
         #expect(try store.grade(itemID: "i") == .unknown)

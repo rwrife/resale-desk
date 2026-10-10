@@ -74,7 +74,7 @@ The core workspace wants two surfaces: item photos + condition evidence on one s
 
 ## Current status
 
-M1 bootstrap: `ResaleDesk.xcodeproj`, a SwiftUI launch screen, `ResaleDeskKit` and `ResaleDeskStore` package skeletons, and Linux/pinned-Apple CI. No inventory, rubric engine, persistence, or export behavior is implemented yet. CI builds the app and measures its bundle identifier and `UIDeviceFamily`; package unit tests run on Linux and the pinned Apple toolchain. This is not a simulator launch or distribution claim. Icon artwork, release workflow, signed archive, and TestFlight build remain issue #7 work. See [bootstrap evidence](docs/bootstrap-evidence.md).
+M3 condition capture workflow: inventory list and item creation, category-appropriate rubric starters (apparel, electronics, books, homeware) plus custom check additions, live unknown-safe grade summary, pass/fail/unknown answers with optional defect notes, and camera-only sandbox photo capture with metadata-free JPEG encoding. GRDB SQLite persistence backs all entities with v2 ledger guards. Linux package tests and static zero-network, native-only, and contract gates pass. The pinned Apple CI checks app compilation and built `UIDeviceFamily == [1]`; camera capture, VoiceOver, and large Dynamic Type still need device review. Icon artwork, release workflow, signed archive, and TestFlight build remain issue #7 work. See [bootstrap evidence](docs/bootstrap-evidence.md) and [domain store](docs/domain-store.md).
 
 ## Milestones
 
@@ -88,7 +88,7 @@ M1 bootstrap: `ResaleDesk.xcodeproj`, a SwiftUI launch screen, `ResaleDeskKit` a
 
 ## Development quickstart
 
-Open `ResaleDesk.xcodeproj` in Xcode 26.0.1 (17A400) and build the `ResaleDesk` scheme for iOS Simulator. Run `swift test --package-path Packages/ResaleDeskKit` and `swift test --package-path Packages/ResaleDeskStore`; run `bash scripts/check_zero_network.sh`, `bash scripts/check_native_only.sh`, and `swift scripts/check_contract.swift` for static gates. CI runs both packages on Linux and on a pinned macOS runner, where it also builds the iPhone app and inspects the built plist. The store is a skeleton here; GRDB arrives in issue #2.
+Open `ResaleDesk.xcodeproj` in Xcode 26.0.1 (17A400) and build the `ResaleDesk` scheme for iOS Simulator. Run `swift test --package-path Packages/ResaleDeskKit` and `swift test --package-path Packages/ResaleDeskStore`; run `bash scripts/check_zero_network.sh`, `bash scripts/check_native_only.sh`, and `swift scripts/check_contract.swift` for static gates. CI runs both packages on Linux and on a pinned macOS runner, where it also builds the iPhone app and inspects the built plist. The store is GRDB-backed; photo imports are user-initiated and remain in Application Support.
 
 ## License
 

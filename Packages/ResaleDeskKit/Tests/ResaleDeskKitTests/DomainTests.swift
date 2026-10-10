@@ -58,6 +58,17 @@ struct DomainTests {
         try PriceEvent(id: "unknown", itemID: "i", askingCents: nil, minimumCents: nil, recordedAt: 0).validate()
     }
 
+    @Test func addedOptionalFieldsDecodeFromOlderLocalRecords() throws {
+        let decoder = JSONDecoder()
+        let item = try decoder.decode(Item.self, from: Data(#"{"id":"i","title":"Book","photoPaths":[]}"#.utf8))
+        let question = try decoder.decode(RubricQuestion.self, from: Data(#"{"id":"spine","required":true}"#.utf8))
+        let answer = try decoder.decode(ConditionAnswer.self, from: Data(#"{"questionID":"spine","value":"fail"}"#.utf8))
+        #expect(item.category == nil)
+        #expect(question.displayTitle == "spine")
+        #expect(answer.note == nil)
+        #expect(try JSONDecoder().decode(Item.self, from: JSONEncoder().encode(item)) == item)
+    }
+
     @Test func parcelAndDraftValidateReferences() throws {
         #expect(throws: DomainError.self) { try Item(id: "", title: "Book").validate() }
         #expect(throws: DomainError.self) { try Item(id: "i", title: "Book", photoPaths: ["photos/a.jpg", "photos/a.jpg"]).validate() }
