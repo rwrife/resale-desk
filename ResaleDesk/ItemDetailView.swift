@@ -7,6 +7,7 @@ struct ItemDetailView: View {
     let itemID: String
     @State private var editing = false
     @State private var capturing = false
+    @State private var listing = false
     @State private var error: String?
     @State private var removing: String?
 
@@ -22,6 +23,8 @@ struct ItemDetailView: View {
                         .frame(minHeight: 48).accessibilityIdentifier("item.edit")
                     NavigationLink("Evaluate condition") { ConditionView(model: model, item: item) }
                         .frame(minHeight: 48).accessibilityIdentifier("condition.open")
+                    Button("Listing draft & pricing") { listing = true }
+                        .frame(minHeight: 48).accessibilityIdentifier("listing.open")
                 }
                 Section("Local condition photos") {
                     Button("Capture defect photo", systemImage: "camera") {
@@ -51,6 +54,7 @@ struct ItemDetailView: View {
             }
             .navigationTitle("Item workspace")
             .sheet(isPresented: $editing) { ItemEditor(model: model, item: item) }
+            .sheet(isPresented: $listing) { ListingEditor(model: model, item: item) }
             .fullScreenCover(isPresented: $capturing) {
                 CameraCapture { image in
                     capturing = false
