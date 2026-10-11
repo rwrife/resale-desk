@@ -122,6 +122,23 @@ public final class DeskDatabase {
             try db.execute(sql: "INSERT INTO draft VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET itemID = excluded.itemID, payload = excluded.payload", arguments: [draft.id, draft.itemID, try Self.encode(draft)])
         }
     }
+    /// Draft and price snapshot commit together. Identical prices do not add ledger noise.
+    public func saveListing(_ draft: ListingDraft, askingCents: Int64?, minimumCents: Int64?, recordedAt: Int64) throws {
+        try draft.validate()
+        try PriceEvent(id: "validation", itemID: draft.itemID, askingCents: askingCents, minimumCents: minimumCents, recordedAt: recordedAt).validate()
+        try queue.write { db in
+            try Self.active(draft.itemID, db)
+            let prior = try Self.prices(db).filter { $0.itemID == draft.itemID }
+            let latest = prior.last
+            try db.execute(sql: "INSERT INTO draft VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET itemID = excluded.itemID, payload = excluded.payload", arguments: [draft.id, draft.itemID, try Self.encode(draft)])
+            if latest == nil || latest?.askingCents != askingCents || latest?.minimumCents != minimumCents {
+                let event = PriceEvent(id: UUID().uuidString, itemID: draft.itemID, askingCents: askingCents, minimumCents: minimumCents,
+                    recordedAt: max(recordedAt, latest?.recordedAt ?? 0))
+                try PriceEvent.validateHistory(prior + [event])
+                try db.execute(sql: "INSERT INTO price VALUES (?, ?, ?, ?)", arguments: [event.id, event.itemID, event.recordedAt, try Self.encode(event)])
+            }
+        }
+    }
     public func save(_ parcel: Parcel) throws {
         try parcel.validate()
         try queue.write { db in

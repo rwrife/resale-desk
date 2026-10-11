@@ -39,6 +39,13 @@ final class InventoryModel {
         try store().save(rubric)
         try store().saveAnswers(itemID: item.id, rubricID: rubric.id, answers: answers)
     }
+    func draft(for item: Item) throws -> ListingDraft? { try store().drafts().first { $0.itemID == item.id } }
+    func priceHistory(for item: Item) throws -> [PriceEvent] { try store().prices().filter { $0.itemID == item.id } }
+    func rubric(for condition: ItemCondition) throws -> RubricTemplate? { try rubrics().first { $0.id == condition.rubricID } }
+    func saveListing(_ draft: ListingDraft, askingCents: Int64?, minimumCents: Int64?) throws {
+        try store().saveListing(draft, askingCents: askingCents, minimumCents: minimumCents,
+            recordedAt: Int64(Date().timeIntervalSince1970 * 1000))
+    }
 
     // Import is explicitly user initiated. Bytes stay under Application Support.
     func attach(_ data: Data, to item: Item) throws {
