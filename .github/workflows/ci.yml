@@ -203,3 +203,46 @@ jobs:
           [ -f "$APP/PrivacyInfo.xcprivacy" ] \
             || { echo "::error::PrivacyInfo.xcprivacy not embedded in app bundle"; exit 1; }
           echo "Privacy manifest embedded: PASS"
+
+      - name: Run iPhone UI journey (parcel packing + outcome ledger)
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          # Boot a dedicated iPhone 17 on the pinned runtime. The FIRST boot
+          # after -downloadPlatform prepares the device image lazily and can
+          # exceed the usual wait, so the initial bootstatus gets a 300s bound
+          # (observed runner-pool flake otherwise).
+          SDK_VER=$(xcrun --sdk iphonesimulator --show-sdk-version)
+          RUNTIME_ID="com.apple.CoreSimulator.SimRuntime.iOS-$(echo "$SDK_VER" | cut -d. -f1,2 | tr '.' '-')"
+          UDID=$(xcrun simctl create "rd-uitest" "iPhone 17" "$RUNTIME_ID")
+          cleanup() {
+            python3 - "$UDID" <<'PY'
+          import subprocess, sys
+          for action in ('shutdown', 'delete'):
+              try: subprocess.run(['xcrun', 'simctl', action, sys.argv[1]], timeout=30, capture_output=True)
+              except subprocess.TimeoutExpired: pass
+          PY
+          }
+          trap cleanup EXIT
+          python3 - "$UDID" <<'PY'
+          import subprocess, sys
+          for args, bound in [(['boot'], 90), (['bootstatus'], 300)]:
+              subprocess.run(['xcrun', 'simctl', *args, sys.argv[1], *(['-b'] if args == ['bootstatus'] else [])], timeout=bound, check=True)
+          PY
+          xcodebuild test \
+            -project ResaleDesk.xcodeproj \
+            -scheme ResaleDesk \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            -only-testing:ResaleDeskUITests \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            -resultBundlePath "$RUNNER_TEMP/ParcelJourney.xcresult"
+
+      - name: Upload UI journey results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parcel-journey-results
+          path: ${{ runner.temp }}/ParcelJourney.xcresult
+          if-no-files-found: warn
+          retention-days: 7

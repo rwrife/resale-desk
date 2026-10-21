@@ -13,6 +13,12 @@ final class InventoryModel {
     init() {
         root = URL.applicationSupportDirectory.appendingPathComponent("ResaleDesk", isDirectory: true)
         do {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-ui-testing-reset") {
+                // Fresh-simulator launches have nothing to clear; missing root is fine.
+                try? FileManager.default.removeItem(at: root)
+            }
+            #endif
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
             let store = try DeskDatabase(path: root.appendingPathComponent("desk.sqlite").path)
             let known = Set(try store.rubrics().map(\.id))
@@ -39,6 +45,18 @@ final class InventoryModel {
         try store().save(rubric)
         try store().saveAnswers(itemID: item.id, rubricID: rubric.id, answers: answers)
     }
+    func parcels() throws -> [Parcel] { try store().parcels() }
+    func outcomes() throws -> [OutcomeEvent] { try store().outcomes() }
+    func saveParcel(_ parcel: Parcel) throws { try store().save(parcel) }
+    func packingEvents() throws -> [PackingEvent] { try store().packingEvents() }
+    func recordPacking(parcelID: String, key: String, completed: Bool) throws {
+        try store().append(PackingEvent(id: UUID().uuidString, parcelID: parcelID, checklistKey: key,
+            completed: completed, recordedAt: Int64(Date().timeIntervalSince1970 * 1000)))
+    }
+    func recordOutcome(itemID: String, kind: OutcomeKind, netCents: Int64?, season: String) throws {
+        try store().record(OutcomeEvent(id: UUID().uuidString, itemID: itemID, kind: kind, netCents: netCents, season: season))
+    }
+    func total(season: String) throws -> MoneyTotal { try store().total(season: season) }
     func draft(for item: Item) throws -> ListingDraft? { try store().drafts().first { $0.itemID == item.id } }
     func priceHistory(for item: Item) throws -> [PriceEvent] { try store().prices().filter { $0.itemID == item.id } }
     func rubric(for condition: ItemCondition) throws -> RubricTemplate? { try rubrics().first { $0.id == condition.rubricID } }

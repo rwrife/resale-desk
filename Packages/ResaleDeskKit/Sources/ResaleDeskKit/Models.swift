@@ -144,7 +144,20 @@ public struct PackingEvent: Codable, Equatable, Sendable {
     public func validate() throws { try identity(id, parcelID, checklistKey); guard recordedAt >= 0 else { throw DomainError.invalidHistory } }
 }
 
-public enum OutcomeKind: String, Codable, Sendable { case sold, unsold, donated }
+public enum OutcomeKind: String, Codable, Sendable, CaseIterable { case sold, returned, donated, discarded, unsold }
+
+/// Checklist keys are stable across app upgrades; history stores transitions, not mutable flags.
+public enum PackingChecklist {
+    public static let keys = ["condition-checked", "contents-checked", "protected", "sealed"]
+    public static func completed(_ events: [PackingEvent], parcelID: String) -> Set<String> {
+        var result = Set<String>()
+        for event in events where event.parcelID == parcelID && keys.contains(event.checklistKey) {
+            if event.completed { result.insert(event.checklistKey) } else { result.remove(event.checklistKey) }
+        }
+        return result
+    }
+}
+
 public enum MoneyTotal: Equatable, Sendable { case known(Int64), unknown }
 public struct OutcomeEvent: Codable, Equatable, Sendable {
     public let id: String

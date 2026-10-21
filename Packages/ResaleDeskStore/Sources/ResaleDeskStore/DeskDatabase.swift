@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 import ResaleDeskKit
 
-public enum StoreError: Error { case missingRubric, referencedRubric, terminalItem, corruptPayload, packedParcel }
+public enum StoreError: Error { case missingRubric, referencedRubric, terminalItem, corruptPayload, packedParcel, unknownParcel, unknownItem, assignedParcel }
 
 /// Synchronous local store. GRDB serializes writes; every multi-row operation is atomic.
 public final class DeskDatabase {
@@ -58,11 +58,13 @@ public final class DeskDatabase {
     public func save(_ item: Item) throws {
         try item.validate()
         try queue.write { db in
+            try Self.active(item.id, db)
             try db.execute(sql: "INSERT INTO item VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET payload = excluded.payload", arguments: [item.id, try Self.encode(item)])
         }
     }
     public func updateMetadata(itemID: String, title: String, category: String?) throws {
         try queue.write { db in
+            try Self.active(itemID, db)
             guard let row = try Row.fetchOne(db, sql: "SELECT * FROM item WHERE id = ?", arguments: [itemID]) else {
                 throw StoreError.corruptPayload
             }
@@ -142,6 +144,10 @@ public final class DeskDatabase {
     public func save(_ parcel: Parcel) throws {
         try parcel.validate()
         try queue.write { db in
+            guard try parcel.itemIDs.allSatisfy({ try Row.fetchOne(db, sql: "SELECT id FROM item WHERE id = ?", arguments: [$0]) != nil }) else { throw StoreError.unknownItem }
+            for itemID in parcel.itemIDs {
+                guard try Row.fetchOne(db, sql: "SELECT itemID FROM parcel_item WHERE parcelID != ? AND itemID = ?", arguments: [parcel.id, itemID]) == nil else { throw StoreError.assignedParcel }
+            }
             if let row = try Row.fetchOne(db, sql: "SELECT * FROM parcel WHERE id = ?", arguments: [parcel.id]),
                try Self.decode(Parcel.self, row).itemIDs != parcel.itemIDs,
                try Row.fetchOne(db, sql: "SELECT id FROM packing WHERE parcelID = ?", arguments: [parcel.id]) != nil { throw StoreError.packedParcel }
@@ -171,9 +177,28 @@ public final class DeskDatabase {
     public func append(_ event: PackingEvent) throws {
         try event.validate()
         try queue.write { db in
+            guard try Row.fetchOne(db, sql: "SELECT id FROM parcel WHERE id = ?", arguments: [event.parcelID]) != nil else { throw StoreError.unknownParcel }
             let latest = try Int64.fetchOne(db, sql: "SELECT MAX(recordedAt) FROM packing WHERE parcelID = ?", arguments: [event.parcelID])
             guard latest.map({ event.recordedAt >= $0 }) ?? true else { throw DomainError.invalidHistory }
             try db.execute(sql: "INSERT INTO packing VALUES (?, ?, ?, ?)", arguments: [event.id, event.parcelID, event.recordedAt, try Self.encode(event)])
+        }
+    }
+    /// Checklist state is derived from the append-only packing ledger, never stored mutably.
+    public func parcelChecklist(parcelID: String) throws -> Set<String> {
+        try queue.read { try PackingChecklist.completed(Self.packing($0), parcelID: parcelID) }
+    }
+    /// Recording an outcome closes the item for further staging work and any open parcel containing it.
+    public func record(_ outcome: OutcomeEvent) throws {
+        try outcome.validate()
+        try queue.write { db in
+            try Self.active(outcome.itemID, db)
+            try db.execute(sql: "INSERT INTO outcome VALUES (?, ?, ?)", arguments: [outcome.id, outcome.itemID, try Self.encode(outcome)])
+        }
+    }
+    public func outcome(itemID: String) throws -> OutcomeEvent? {
+        try queue.read { db in
+            guard let row = try Row.fetchOne(db, sql: "SELECT * FROM outcome WHERE itemID = ?", arguments: [itemID]) else { return nil }
+            return try Self.decode(OutcomeEvent.self, row)
         }
     }
     public func items() throws -> [Item] {
@@ -220,12 +245,11 @@ public final class DeskDatabase {
     }
     public func outcomes() throws -> [OutcomeEvent] { try queue.read { try Self.outcomes($0) } }
     public func total(season: String) throws -> MoneyTotal { try queue.read { try OutcomeEvent.total(Self.outcomes($0), season: season) } }
-    public func packingEvents() throws -> [PackingEvent] {
-        try queue.read { db in
-            try Row.fetchAll(db, sql: "SELECT * FROM packing ORDER BY recordedAt, rowid").map { row in
-                let value = try Self.decode(PackingEvent.self, row); try value.validate(); try Self.check(value.id, row); try Self.check(value.parcelID, row, column: "parcelID")
-                guard value.recordedAt == row["recordedAt"] as Int64 else { throw StoreError.corruptPayload }; return value
-            }
+    private static func packing(_ db: Database) throws -> [PackingEvent] {
+        try Row.fetchAll(db, sql: "SELECT * FROM packing ORDER BY recordedAt, rowid").map { row in
+            let value = try decode(PackingEvent.self, row); try value.validate(); try check(value.id, row); try check(value.parcelID, row, column: "parcelID")
+            guard value.recordedAt == row["recordedAt"] as Int64 else { throw StoreError.corruptPayload }; return value
         }
     }
+    public func packingEvents() throws -> [PackingEvent] { try queue.read { try Self.packing($0) } }
 }
