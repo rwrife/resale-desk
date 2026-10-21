@@ -241,6 +241,7 @@ struct ParcelDetailView: View {
         }
         .frame(minHeight: 48)
         .accessibilityIdentifier("parcel.step.\(key)")
+        .accessibilityValue(isDone ? "Done" : "Not done")
     }
 
     private func toggleStep(key: String, currentlyDone: Bool) {

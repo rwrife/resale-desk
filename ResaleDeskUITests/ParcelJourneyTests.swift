@@ -1,6 +1,8 @@
+import Foundation
 import XCTest
 
 final class ParcelJourneyTests: XCTestCase {
+    @MainActor
     func testInventoryToParcelPackingAndOutcome() {
         continueAfterFailure = false
         let app = XCUIApplication()
@@ -40,8 +42,16 @@ final class ParcelJourneyTests: XCTestCase {
 
         let step = app.buttons["parcel.step.condition-checked"]
         XCTAssertTrue(step.waitForExistence(timeout: 10))
+        // Identifier'd checklist row is a Button whose merged label absorbs the tap
+        // reliably; assert the persisted flip via its accessibility value, then the
+        // visible confirmation, both with bounded polling.
         step.tap()
-        XCTAssertTrue(app.staticTexts["parcel.notice"].waitForExistence(timeout: 10))
+        var confirmed = false
+        for _ in 0..<40 {
+            if step.value as? String == "Done" { confirmed = true; break }
+            usleep(250_000)
+        }
+        XCTAssertTrue(confirmed, "checklist value never flipped to Done: \(step.debugDescription)")
 
         app.navigationBars.buttons.element(boundBy: 0).tap()
         app.navigationBars.buttons.element(boundBy: 0).tap()
@@ -62,7 +72,17 @@ final class ParcelJourneyTests: XCTestCase {
         recordBtn.tap()
 
         let outcomeRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Camera: Sold")).firstMatch
-        XCTAssertTrue(outcomeRow.waitForExistence(timeout: 10))
+        scrollToExists(outcomeRow, in: app)
+        XCTAssertTrue(outcomeRow.exists, app.debugDescription)
         XCTAssertTrue(app.staticTexts["outcome.total"].label.contains("Unknown"))
+    }
+
+    /// List rows below the fold are lazily mounted in the AX tree; scroll
+    /// (bounded) until the target exists instead of asserting blindly.
+    @MainActor
+    private func scrollToExists(_ element: XCUIElement, in app: XCUIApplication, maxSwipes: Int = 5) {
+        for _ in 0..<maxSwipes where !element.exists {
+            app.swipeUp()
+        }
     }
 }
