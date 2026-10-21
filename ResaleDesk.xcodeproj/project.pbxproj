@@ -9,11 +9,14 @@
 /* Begin PBXBuildFile section */
 		AA00000000000000000000B0 /* ResaleDeskKit in ResaleDeskKit */ = {isa = PBXBuildFile; productRef = AA00000000000000000000AF /* ResaleDeskKit */; };
 		AA00000000000000000000B6 /* ResaleDeskStore in ResaleDeskStore */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B5 /* ResaleDeskStore */; };
+		AA00000000000000000000C1 /* ParcelJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000C2 /* ParcelJourneyTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AA00000000000000000000B1 /* ResaleDesk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ResaleDesk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA00000000000000000000B3 /* toolchain.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = toolchain.json; sourceTree = "<group>"; };
+		AA00000000000000000000C2 /* ParcelJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParcelJourneyTests.swift; sourceTree = "<group>"; };
+		AA00000000000000000000C3 /* ResaleDeskUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ResaleDeskUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -38,13 +41,29 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA00000000000000000000C4 /* UI test Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA00000000000000000000C5 /* ResaleDeskUITests */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000000000000C2 /* ParcelJourneyTests.swift */,
+			);
+			path = ResaleDeskUITests;
+			sourceTree = "<group>";
+		};
 		AA00000000000000000000AD = {
 			isa = PBXGroup;
 			children = (
 				AA00000000000000000000AC /* ResaleDesk */,
+				AA00000000000000000000C5 /* ResaleDeskUITests */,
 				AA00000000000000000000B3 /* toolchain.json */,
 				AA00000000000000000000B2 /* Products */,
 			);
@@ -54,6 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				AA00000000000000000000B1 /* ResaleDesk.app */,
+				AA00000000000000000000C3 /* ResaleDeskUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,7 +105,31 @@
 			productReference = AA00000000000000000000B1 /* ResaleDesk.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AA00000000000000000000C7 /* ResaleDeskUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000C9 /* UI test configurations */;
+			buildPhases = (
+				AA00000000000000000000C6 /* UI test Sources */,
+				AA00000000000000000000C4 /* UI test Frameworks */,
+			);
+			buildRules = ();
+			dependencies = (
+				AA00000000000000000000CA /* App dependency */,
+			);
+			name = ResaleDeskUITests;
+			productName = ResaleDeskUITests;
+			productReference = AA00000000000000000000C3 /* ResaleDeskUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		AA00000000000000000000CB /* App proxy */ = {isa = PBXContainerItemProxy; containerPortal = AA00000000000000000000A1; proxyType = 1; remoteGlobalIDString = AA00000000000000000000A2; remoteInfo = ResaleDesk; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		AA00000000000000000000CA /* App dependency */ = {isa = PBXTargetDependency; target = AA00000000000000000000A2; targetProxy = AA00000000000000000000CB /* App proxy */; };
+/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		AA00000000000000000000A1 /* Project object */ = {
@@ -96,6 +140,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					AA00000000000000000000A2 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					AA00000000000000000000C7 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
@@ -118,6 +165,7 @@
 			projectRoot = "";
 			targets = (
 				AA00000000000000000000A2 /* ResaleDesk */,
+				AA00000000000000000000C7 /* ResaleDeskUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -133,6 +181,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		AA00000000000000000000C6 /* UI test Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000C1 /* ParcelJourneyTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AA00000000000000000000A9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -277,6 +333,34 @@
 			};
 			name = Release;
 		};
+		AA00000000000000000000C8 /* UI Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.resaledesk.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = ResaleDesk;
+		};
+			name = Debug;
+		};
+		AA00000000000000000000CD /* UI Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.resaledesk.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = ResaleDesk;
+		};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -294,6 +378,15 @@
 			buildConfigurations = (
 				AA00000000000000000000A7 /* Debug */,
 				AA00000000000000000000A8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000C9 /* UI test configurations */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA00000000000000000000C8 /* UI Debug */,
+				AA00000000000000000000CD /* UI Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

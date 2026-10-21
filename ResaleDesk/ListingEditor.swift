@@ -6,7 +6,6 @@ struct ListingEditor: View {
     let model: InventoryModel
     let item: Item
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var textSize
     @State private var draftID = UUID().uuidString
     @State private var title = ""
     @State private var description = ""
@@ -55,10 +54,8 @@ struct ListingEditor: View {
         NavigationStack {
             Form {
                 Section("Evidence & draft") {
-                    // ponytail: two columns on standard iPhone text; stack for accessibility.
-                    // Future dual-display presentation belongs only in ListingWorkspaceLayout (M5).
-                    if textSize.isAccessibilitySize { VStack(alignment: .leading, spacing: 16) { evidence; fields } }
-                    else { HStack(alignment: .top, spacing: 16) { evidence; fields } }
+                    // Presentation is owned by the ListingWorkspaceLayout seam (future Duo adaptation point).
+                    ListingWorkspaceLayout { evidence } controls: { fields }
                 }
                 Section("Prices in your currency") {
                     TextField("Asking price", text: $asking).keyboardType(.decimalPad)

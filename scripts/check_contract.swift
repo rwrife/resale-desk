@@ -27,14 +27,17 @@ func values(_ key: String) throws -> [String] {
     }
 }
 let configurations = try values("isa").filter { $0 == "XCBuildConfiguration" }.count
-require(configurations == 4, "expected Debug/Release project and app configurations; update gate when targets change")
-for (key, expected, count) in [
-    ("TARGETED_DEVICE_FAMILY", "1", configurations),
-    ("IPHONEOS_DEPLOYMENT_TARGET", "26.0", configurations),
-    ("SWIFT_VERSION", "6.0", configurations),
-    ("PRODUCT_BUNDLE_IDENTIFIER", "com.infinityball.resaledesk", 2)
+require(configurations == 6, "expected Debug/Release project, app, and UI test configurations")
+for (key, expected) in [
+    ("TARGETED_DEVICE_FAMILY", "1"),
+    ("IPHONEOS_DEPLOYMENT_TARGET", "26.0"),
+    ("SWIFT_VERSION", "6.0")
 ] {
     let actual = try values(key)
-    require(actual.count == count && actual.allSatisfy { $0 == expected }, "\(key) across all configurations")
+    require(actual.count == configurations && actual.allSatisfy { $0 == expected }, "\(key) across all configurations")
 }
-print("Static contract checks: PASS (exact pin, four configurations, identity, offline policy)")
+let bundleIDs = try values("PRODUCT_BUNDLE_IDENTIFIER")
+require(bundleIDs.count == 4 && bundleIDs.filter { $0 == "com.infinityball.resaledesk" }.count == 2
+    && bundleIDs.filter { $0 == "com.infinityball.resaledesk.uitests" }.count == 2,
+    "bundle identity across app and UI test targets")
+print("Static contract checks: PASS (exact pin, six configurations, identity, offline policy)")

@@ -29,6 +29,14 @@ struct ContentView: View {
                     }
                 }
                 Section {
+                    NavigationLink("Parcels & packing", destination: { ParcelListView(model: model) })
+                        .frame(minHeight: 48)
+                        .accessibilityIdentifier("parcels.open")
+                    NavigationLink("Outcome ledger", destination: { OutcomeListView(model: model) })
+                        .frame(minHeight: 48)
+                        .accessibilityIdentifier("outcomes.open")
+                }
+                Section {
                     Text("Offline preparation only. Condition grades summarize your checks; they are not authenticity certification.")
                         .font(.footnote)
                 }
